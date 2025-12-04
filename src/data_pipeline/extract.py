@@ -97,58 +97,6 @@ def extract_chats_data(src_folder: Path, dst_path: Path) -> None:
     print(f"Cleaned data written to {dst_path}")
 
 
-def generate_enriched_data(chats_data_path: Path, dst_path: Path) -> None:
-    """
-    Generate enriched chat data with additional calculated fields.
-
-    Args:
-        chats_data_path: Path to the processed chat data JSON file
-        dst_path: Path to the output enriched JSON file
-    """
-    # Load the processed chat data
-    with open(chats_data_path) as f:
-        chat_data = json.load(f)
-
-    enriched_records = []
-
-    for record in chat_data:
-        # Extract mentioned users using regex
-        mentioned_users = extract_mentioned_users(record.get("message", ""))
-
-        # Parse datetime to calculate month and week
-        datetime_str = record.get("datetime", "")
-        if datetime_str:
-            dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
-
-            # Calculate month
-            month = dt.strftime("%Y-%m")
-
-            # Calculate week (Monday of the week)
-            monday = dt - timedelta(days=dt.weekday())
-            week = monday.strftime("%Y-%m-%d")
-        else:
-            month = None
-            week = None
-
-        # Create enriched record
-        enriched_record = {
-            **record,  # Include all original fields
-            "mentioned_users": mentioned_users,
-            "month": month,
-            "week": week,
-        }
-
-        enriched_records.append(enriched_record)
-
-    # Ensure the output directory exists
-    dst_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # Save enriched data
-    with open(dst_path, "w") as f:
-        json.dump(enriched_records, f, indent=2, ensure_ascii=False)
-    print(f"Enriched data written to {dst_path}")
-
-
 def extract_mentioned_users(message: str) -> list[str] | None:
     """
     Extract usernames that were mentioned in a message.
