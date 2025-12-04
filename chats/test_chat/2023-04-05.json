@@ -1,0 +1,162 @@
+[
+    {
+        "user": "U333444555",
+        "type": "message",
+        "ts": "1680687336.123456",
+        "client_msg_id": "test-msg-id-003",
+        "text": "\"Is it an all you can eat?\" - <@U666777888>\n\"No, it's an all you can afford\" - <@U999000111>",
+        "team": "T000000001",
+        "user_team": "T000000001",
+        "source_team": "T000000001",
+        "user_profile": {
+            "avatar_hash": "test_hash_003",
+            "image_72": "https:\/\/example.com\/avatars\/test_user_003_72.jpg",
+            "first_name": "Alice",
+            "real_name": "Alice Johnson",
+            "display_name": "Alice Johnson",
+            "team": "T000000001",
+            "name": "alice.johnson",
+            "is_restricted": false,
+            "is_ultra_restricted": false
+        },
+        "channel": "C123RANDOM",
+        "channel_name": "random-phrase-of-the-week",
+        "is_locked": false,
+        "subscribed": false,
+        "blocks": [
+            {
+                "type": "rich_text",
+                "block_id": "test_block_003",
+                "elements": [
+                    {
+                        "type": "rich_text_section",
+                        "elements": [
+                            {
+                                "type": "text",
+                                "text": "\"Is it an all you can eat?\" - "
+                            },
+                            {
+                                "type": "user",
+                                "user_id": "U666777888"
+                            },
+                            {
+                                "type": "text",
+                                "text": "\n\"No, it's an all you can afford\" - "
+                            },
+                            {
+                                "type": "user",
+                                "user_id": "U999000111"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "reactions": [
+            {
+                "name": "laughing",
+                "users": [
+                    "U666777888",
+                    "U999000111",
+                    "U222333444"
+                ],
+                "count": 3
+            },
+                        {
+                "name": "fire",
+                "users": [
+                    "U666777888",
+                    "U999000111"
+                ],
+                "count": 2
+            },
+            {
+                "name": "quote",
+                "users": [
+                    "U222333444"
+                ],
+                "count": 1
+            }
+        ]
+    },
+    {
+        "user": "U222333444",
+        "type": "message",
+        "ts": "1680689145.567890",
+        "client_msg_id": "test-msg-id-005",
+        "text": "\"Can you help me with my homework?\" - <@U987654321>\n\"I can't even help myself with my problems\" - <@U123456789>",
+        "team": "T000000001",
+        "user_team": "T000000001",
+        "source_team": "T000000001",
+        "user_profile": {
+            "avatar_hash": "test_hash_005",
+            "image_72": "https:\/\/example.com\/avatars\/test_user_005_72.jpg",
+            "first_name": "Charlie",
+            "real_name": "Charlie Brown",
+            "display_name": "Charlie Brown",
+            "team": "T000000001",
+            "name": "charlie.brown",
+            "is_restricted": false,
+            "is_ultra_restricted": false
+        },
+        "channel": "C123RANDOM",
+        "channel_name": "random-phrase-of-the-week",
+        "is_locked": false,
+        "subscribed": false,
+        "blocks": [
+            {
+                "type": "rich_text",
+                "block_id": "test_block_005",
+                "elements": [
+                    {
+                        "type": "rich_text_section",
+                        "elements": [
+                            {
+                                "type": "text",
+                                "text": "\"Can you help me with my homework?\" - "
+                            },
+                            {
+                                "type": "user",
+                                "user_id": "U987654321"
+                            },
+                            {
+                                "type": "text",
+                                "text": "\n\"I can't even help myself with my problems\" - "
+                            },
+                            {
+                                "type": "user",
+                                "user_id": "U123456789"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "reactions": [
+            {
+                "name": "joy",
+                "users": [
+                    "U333444555",
+                    "U987654321",
+                    "U123456789"
+                ],
+                "count": 3
+            },
+            {
+                "name": "skull",
+                "users": [
+                    "U987654321"
+                ],
+                "count": 1
+            },
+            {
+                "name": "mood",
+                "users": [
+                    "U123456789",
+                    "U333444555"
+                ],
+                "count": 2
+            }
+        ]
+    }
+]

@@ -1,0 +1,140 @@
+[
+    {
+        "user": "U123456789",
+        "type": "message",
+        "ts": "1680600936.358669",
+        "client_msg_id": "test-msg-id-001",
+        "text": "\"How should I put it... do you want to go to heaven?!\" <@U987654321> to <@U555666777>",
+        "team": "T000000001",
+        "user_team": "T000000001",
+        "source_team": "T000000001",
+        "user_profile": {
+            "avatar_hash": "test_hash_001",
+            "image_72": "https:\/\/example.com\/avatars\/test_user_001_72.jpg",
+            "first_name": "John",
+            "real_name": "John Doe",
+            "display_name": "John Doe",
+            "team": "T000000001",
+            "name": "john.doe",
+            "is_restricted": false,
+            "is_ultra_restricted": false
+        },
+        "thread_ts": "1680600936.358669",
+        "reply_count": 1,
+        "reply_users_count": 1,
+        "latest_reply": "1680601591.963479",
+        "reply_users": [
+            "U987654321"
+        ],
+        "replies": [
+            {
+                "user": "U987654321",
+                "ts": "1680601591.963479"
+            }
+        ],
+        "is_locked": false,
+        "subscribed": false,
+        "blocks": [
+            {
+                "type": "rich_text",
+                "block_id": "test_block_001",
+                "elements": [
+                    {
+                        "type": "rich_text_section",
+                        "elements": [
+                            {
+                                "type": "text",
+                                "text": "\"How should I put it... do you want to go to heaven?!\" "
+                            },
+                            {
+                                "type": "user",
+                                "user_id": "U987654321"
+                            },
+                            {
+                                "type": "text",
+                                "text": " to "
+                            },
+                            {
+                                "type": "user",
+                                "user_id": "U555666777"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "reactions": [
+            {
+                "name": "joy",
+                "users": [
+                    "U111222333",
+                    "U987654321",
+                    "U444555666",
+                    "U777888999",
+                    "U000111222"
+                ],
+                "count": 5
+            }
+        ]
+    },
+    {
+        "user": "U987654321",
+        "type": "message",
+        "ts": "1680601591.963479",
+        "client_msg_id": "test-msg-id-002",
+        "text": "<@U555666777> but really, do you?",
+        "team": "T000000001",
+        "user_team": "T000000001",
+        "source_team": "T000000001",
+        "user_profile": {
+            "avatar_hash": "test_hash_002",
+            "image_72": "https:\/\/example.com\/avatars\/test_user_002_72.png",
+            "first_name": "Jane",
+            "real_name": "Jane Smith",
+            "display_name": "Jane Smith",
+            "team": "T000000001",
+            "name": "jane.smith",
+            "is_restricted": false,
+            "is_ultra_restricted": false
+        },
+        "thread_ts": "1680600936.358669",
+        "parent_user_id": "U123456789",
+        "blocks": [
+            {
+                "type": "rich_text",
+                "block_id": "test_block_002",
+                "elements": [
+                    {
+                        "type": "rich_text_section",
+                        "elements": [
+                            {
+                                "type": "user",
+                                "user_id": "U555666777"
+                            },
+                            {
+                                "type": "text",
+                                "text": " but really, do you?"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "reactions": [
+            {
+                "name": "me-too",
+                "users": [
+                    "U555666777"
+                ],
+                "count": 1
+            },
+            {
+                "name": "innocent",
+                "users": [
+                    "U555666777"
+                ],
+                "count": 1
+            }
+        ]
+    }
+]

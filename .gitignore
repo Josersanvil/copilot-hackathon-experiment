@@ -1,0 +1,11 @@
+.DS_Store
+
+random_phrase_ot_week
+random_phrase_ot_week.zip
+
+# Exclude everything in chats/ directory
+chats/*
+
+# But include chats/test_chat/ directory and its contents
+!chats/test_chat/
+
