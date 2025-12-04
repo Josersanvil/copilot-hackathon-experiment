@@ -16,7 +16,7 @@
     ],
     "month": "2023-04",
     "week": "2023-04-03",
-    "quality_score_from_llm": 8
+    "quality_score_from_llm": 7
   },
   {
     "message_id": "1680687336.123456",
@@ -58,6 +58,6 @@
     ],
     "month": "2023-04",
     "week": "2023-04-03",
-    "quality_score_from_llm": 6
+    "quality_score_from_llm": 7
   }
 ]
