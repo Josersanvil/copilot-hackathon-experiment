@@ -1,0 +1,60 @@
+[
+  {
+    "message_id": "1680600936.358669",
+    "user_id": "U123456789",
+    "message": "\"How should I put it... do you want to go to heaven?!\" <@U987654321> to <@U555666777>",
+    "username": "John Doe",
+    "datetime": "2023-04-04 11:35:36",
+    "reaction_type": [
+      "joy"
+    ],
+    "number_of_reaction": 5,
+    "reply_count": 1,
+    "mentioned_users": [
+      "U987654321",
+      "U555666777"
+    ],
+    "month": "2023-04",
+    "week": "2023-04-03"
+  },
+  {
+    "message_id": "1680687336.123456",
+    "user_id": "U333444555",
+    "message": "\"Is it an all you can eat?\" - <@U666777888>\n\"No, it's an all you can afford\" - <@U999000111>",
+    "username": "Alice Johnson",
+    "datetime": "2023-04-05 11:35:36",
+    "reaction_type": [
+      "laughing",
+      "fire",
+      "quote"
+    ],
+    "number_of_reaction": 4,
+    "reply_count": 0,
+    "mentioned_users": [
+      "U666777888",
+      "U999000111"
+    ],
+    "month": "2023-04",
+    "week": "2023-04-03"
+  },
+  {
+    "message_id": "1680689145.567890",
+    "user_id": "U222333444",
+    "message": "\"Can you help me with my homework?\" - <@U987654321>\n\"I can't even help myself with my problems\" - <@U123456789>",
+    "username": "Charlie Brown",
+    "datetime": "2023-04-05 12:05:45",
+    "reaction_type": [
+      "joy",
+      "skull",
+      "mood"
+    ],
+    "number_of_reaction": 6,
+    "reply_count": 0,
+    "mentioned_users": [
+      "U987654321",
+      "U123456789"
+    ],
+    "month": "2023-04",
+    "week": "2023-04-03"
+  }
+]
