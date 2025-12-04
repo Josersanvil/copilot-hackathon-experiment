@@ -22,11 +22,16 @@ def extract_chats_data(src_folder: Path, dst_path: Path) -> None:
     # Ensure the output directory exists
     dst_path.parent.mkdir(parents=True, exist_ok=True)
 
-    for filename in os.listdir(src_folder):
-        if filename.endswith(".json"):
-            with open(src_folder / filename) as f:
-                data = json.load(f)
-                all_data.extend(data)
+    # Count and process JSON files
+    json_files = [f for f in os.listdir(src_folder) if f.endswith(".json")]
+    total_files = len(json_files)
+    print(f"Found {total_files} JSON files to process")
+
+    for i, filename in enumerate(json_files, 1):
+        print(f"Processing file {i}/{total_files}: {filename}")
+        with open(src_folder / filename) as f:
+            data = json.load(f)
+            all_data.extend(data)
 
     # Build a lookup for replies across all files
     thread_lookup = {}
