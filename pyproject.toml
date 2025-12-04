@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
+
+[project]
+name = "copilot-hackathon-experiment"
+dynamic = ["version"]
+requires-python = ">=3.12,<3.14"
+
+dependencies = [
+    "polars",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/data_pipeline", "src/backend"]
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.uv-dynamic-versioning]
+fallback-version = "0.0.0"
+
+[dependency-groups]
+dev = [
+    "jupyterlab>=4.3.3",
+    "jupytext>=1.16.6",
+    "pytest>=8.4.2",
+    "ruff>=0.14.1",
+    "pytest-mock>=3.15.1",
+    "pytest-cov",
+    "prek>=0.2.13",
+    "rust-just>=1.43.1",
+]
+
+[tool.ruff]
+line-length = 120
+include = ["src/**/*.py", "tests/**/*.py"]
+
+[tool.ruff.format]
+line-ending = "lf"
+
+[tool.ruff.lint]
+select = ["A", "B", "C", "E", "F", "G", "I", "N", "Q", "R", "PTH", "SIM", "UP", "ANN", "TID"]
+ignore = [
+    "G004" # Logging statement uses f-string
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "D", # tests do not require docstrings
+    "ANN", # or annotations
+    "C901"  # or complexity checks
+]
+
+[tool.ruff.lint.flake8-annotations]
+allow-star-arg-any = true
+
