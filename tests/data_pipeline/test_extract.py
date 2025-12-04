@@ -2,7 +2,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from data_pipeline.main import extract_chats_data, extract_mentioned_users, generate_enriched_data
+from data_pipeline.extract import extract_chats_data, extract_mentioned_users, generate_enriched_data
 
 CHATS_DATA_FOLDER = Path(__file__).parent.parent.parent / "chats" / "test_chat"
 CHAT_RAW_FOLDER = CHATS_DATA_FOLDER / "raw"
