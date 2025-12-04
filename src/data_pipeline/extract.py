@@ -1,15 +1,25 @@
 import json
 import os
 import re
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Optional, Tuple
 
 import polars as pl
 
 from .utils import get_humor_score_for_message
 
 
-def extract_chats_data(src_folder: Path, dst_path: Path, calculate_humor_scores: bool = False) -> None:
+def extract_chats_data(
+    src_folder: Path,
+    dst_path: Path,
+    calculate_humor_scores: bool = False,
+    humor_score_start_date: str | None = None,
+    humor_score_end_date: str | None = None,
+) -> None:
     """
     Extract and clean chat data from JSON files in a source folder.
 
@@ -17,6 +27,8 @@ def extract_chats_data(src_folder: Path, dst_path: Path, calculate_humor_scores:
         src_folder: Path to the directory containing JSON files
         dst_path: Path to the output JSON file where cleaned data will be saved
         calculate_humor_scores: Whether to calculate humor scores using LLM (default: False)
+        humor_score_start_date: Start date for humor scoring in YYYY-MM-DD format (optional)
+        humor_score_end_date: End date for humor scoring in YYYY-MM-DD format (optional)
     """
     all_records = []
     # Store all data from all files first to handle cross-file threads
@@ -77,9 +89,14 @@ def extract_chats_data(src_folder: Path, dst_path: Path, calculate_humor_scores:
             monday = dt - timedelta(days=dt.weekday())
             week = monday.strftime("%Y-%m-%d")
 
-            # Calculate humor score if requested
+            # Calculate humor score if requested and within date range
             quality_score_from_llm = None
-            if calculate_humor_scores and message.strip():
+            should_score = (
+                calculate_humor_scores
+                and message.strip()
+                and _is_within_date_range(dt, humor_score_start_date, humor_score_end_date)
+            )
+            if should_score:
                 print(f"Calculating humor score for message: {message[:50]}...")
                 quality_score_from_llm = get_humor_score_for_message(message, username)
 
@@ -107,39 +124,97 @@ def extract_chats_data(src_folder: Path, dst_path: Path, calculate_humor_scores:
     print(f"Cleaned data written to {dst_path}")
 
 
-def add_humor_scores_to_existing_data(json_file_path: Path) -> None:
+def add_humor_scores_to_existing_data(
+    json_file_path: Path,
+    humor_score_start_date: str | None = None,
+    humor_score_end_date: str | None = None,
+    max_workers: int = 10,
+) -> None:
     """
-    Add humor scores to existing processed chat data.
+    Add humor scores to existing processed chat data using multithreading.
 
     Args:
         json_file_path: Path to the processed chat JSON file
+        humor_score_start_date: Start date for humor scoring in YYYY-MM-DD format (optional)
+        humor_score_end_date: End date for humor scoring in YYYY-MM-DD format (optional)
+        max_workers: Maximum number of concurrent threads (default: 10)
     """
     print(f"Loading existing data from {json_file_path}")
 
     with open(json_file_path) as f:
         data = json.load(f)
 
-    total_messages = len(data)
-    print(f"Found {total_messages} messages to process")
-
-    for i, record in enumerate(data, 1):
+    # Filter messages that need scoring
+    messages_to_score = []
+    for i, record in enumerate(data):
         message = record.get("message", "")
-        username = record.get("username", "")
+        datetime_str = record.get("datetime", "")
 
         # Skip if already has a score or no message content
         if record.get("quality_score_from_llm") is not None or not message.strip():
             continue
 
-        print(f"Processing message {i}/{total_messages}: {message[:50]}...")
-        score = get_humor_score_for_message(message, username)
-        record["quality_score_from_llm"] = score
+        # Check date range if specified
+        if datetime_str:
+            try:
+                dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
+                if not _is_within_date_range(dt, humor_score_start_date, humor_score_end_date):
+                    continue
+            except ValueError:
+                continue  # Skip messages with invalid date format
 
-    # Save updated data
-    print(f"Saving updated data to {json_file_path}")
-    with open(json_file_path, "w") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+        messages_to_score.append((i, record))
 
-    print("Humor scores added successfully!")
+    total_to_score = len(messages_to_score)
+    if total_to_score == 0:
+        print("No messages found that need humor scoring.")
+        return
+
+    print(f"Found {total_to_score} messages to score (using {max_workers} threads)")
+
+    # Use thread-safe file locking for incremental saves
+    file_lock = threading.Lock()
+    scored_count = 0
+
+    def score_message_and_save(index_record: tuple[int, dict]) -> None:
+        nonlocal scored_count
+        index, record = index_record
+        message = record.get("message", "")
+        username = record.get("username", "")
+
+        try:
+            score = get_humor_score_for_message(message, username)
+
+            # Update the record and save immediately
+            with file_lock:
+                record["quality_score_from_llm"] = score
+
+                # Save the updated data immediately
+                with open(json_file_path, "w") as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+
+                nonlocal scored_count
+                scored_count += 1
+                print(
+                    f"Progress: {scored_count}/{total_to_score} - Scored message {index + 1}: {message[:50]}... (Score: {score})"
+                )
+
+        except Exception as e:
+            print(f"Error scoring message {index + 1}: {e}")
+
+    # Use ThreadPoolExecutor for concurrent processing
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all tasks
+        future_to_message = {executor.submit(score_message_and_save, msg): msg for msg in messages_to_score}
+
+        # Process completed tasks
+        for future in as_completed(future_to_message):
+            try:
+                future.result()  # This will raise any exceptions that occurred
+            except Exception as e:
+                print(f"Thread execution error: {e}")
+
+    print(f"\nHumor scores added successfully! Processed {scored_count}/{total_to_score} messages.")
 
 
 def extract_mentioned_users(message: str) -> list[str] | None:
@@ -169,3 +244,36 @@ def extract_mentioned_users(message: str) -> list[str] | None:
     # In a real scenario, you'd want to map these to actual usernames
     # from a user lookup table or user_profile data
     return user_ids
+
+
+def _is_within_date_range(message_date: datetime, start_date_str: str | None, end_date_str: str | None) -> bool:
+    """
+    Check if a message date is within the specified date range.
+
+    Args:
+        message_date: The datetime of the message
+        start_date_str: Start date string in YYYY-MM-DD format (inclusive)
+        end_date_str: End date string in YYYY-MM-DD format (inclusive)
+
+    Returns:
+        True if the message is within the date range or no range is specified
+    """
+    # If no date range specified, include all messages
+    if not start_date_str and not end_date_str:
+        return True
+
+    try:
+        if start_date_str:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+            if message_date.date() < start_date.date():
+                return False
+
+        if end_date_str:
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+            if message_date.date() > end_date.date():
+                return False
+
+        return True
+    except ValueError as e:
+        print(f"Warning: Invalid date format in range check: {e}")
+        return True  # Include message if date parsing fails

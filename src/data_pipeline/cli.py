@@ -22,10 +22,23 @@ def main():
     extract_parser.add_argument(
         "--humor-scores", action="store_true", help="Calculate humor scores using LLM (requires GitHub Copilot CLI)"
     )
+    extract_parser.add_argument(
+        "--humor-score-start-date", type=str, help="Start date for humor scoring (YYYY-MM-DD format)"
+    )
+    extract_parser.add_argument(
+        "--humor-score-end-date", type=str, help="End date for humor scoring (YYYY-MM-DD format)"
+    )
 
     # Add humor scores command
     humor_parser = subparsers.add_parser("add-humor", help="Add humor scores to existing processed chat data")
     humor_parser.add_argument("json_file", type=Path, help="Path to the processed chat JSON file")
+    humor_parser.add_argument(
+        "--humor-score-start-date", type=str, help="Start date for humor scoring (YYYY-MM-DD format)"
+    )
+    humor_parser.add_argument("--humor-score-end-date", type=str, help="End date for humor scoring (YYYY-MM-DD format)")
+    humor_parser.add_argument(
+        "--max-workers", type=int, default=10, help="Maximum number of concurrent threads (default: 10)"
+    )
 
     args = parser.parse_args()
 
@@ -44,7 +57,13 @@ def main():
                 print(f"Error: '{args.src_folder}' is not a directory")
                 return 1
 
-            extract_chats_data(args.src_folder, args.dst_path, calculate_humor_scores=args.humor_scores)
+            extract_chats_data(
+                args.src_folder,
+                args.dst_path,
+                calculate_humor_scores=args.humor_scores,
+                humor_score_start_date=args.humor_score_start_date,
+                humor_score_end_date=args.humor_score_end_date,
+            )
 
         elif args.command == "add-humor":
             # Validate input file exists
@@ -56,7 +75,12 @@ def main():
                 print(f"Error: '{args.json_file}' is not a file")
                 return 1
 
-            add_humor_scores_to_existing_data(args.json_file)
+            add_humor_scores_to_existing_data(
+                args.json_file,
+                humor_score_start_date=args.humor_score_start_date,
+                humor_score_end_date=args.humor_score_end_date,
+                max_workers=args.max_workers,
+            )
 
         return 0
     except Exception as e:

@@ -1,9 +1,15 @@
 import json
 import tempfile
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from data_pipeline.extract import add_humor_scores_to_existing_data, extract_chats_data, extract_mentioned_users
+from data_pipeline.extract import (
+    _is_within_date_range,
+    add_humor_scores_to_existing_data,
+    extract_chats_data,
+    extract_mentioned_users,
+)
 
 CHATS_DATA_FOLDER = Path(__file__).parent.parent.parent / "chats" / "test_chat"
 CHAT_RAW_FOLDER = CHATS_DATA_FOLDER / "raw"
@@ -15,7 +21,7 @@ def test_extract_chats_data():
     CHAT_OUTPUT_FOLDER.mkdir(parents=True, exist_ok=True)
 
     # Call the function with folder (src) and file path (dst)
-    extract_chats_data(CHAT_RAW_FOLDER, CHAT_OUTPUT_FOLDER / "chat.json", calculate_humor_scores=True)
+    extract_chats_data(CHAT_RAW_FOLDER, CHAT_OUTPUT_FOLDER / "chat.json")
     assert (CHAT_OUTPUT_FOLDER / "chat.json").exists()
 
     # Verify that the extracted data includes enriched fields
@@ -248,4 +254,140 @@ def test_add_humor_scores_skips_existing_scores():
 
     finally:
         # Clean up the temporary file
+        temp_path.unlink()
+
+
+def test_is_within_date_range():
+    """Test the date range filtering helper function."""
+    test_date = datetime(2024, 6, 15)
+
+    # No date range specified - should include all
+    assert _is_within_date_range(test_date, None, None) == True
+
+    # Start date only
+    assert _is_within_date_range(test_date, "2024-06-01", None) == True
+    assert _is_within_date_range(test_date, "2024-06-15", None) == True
+    assert _is_within_date_range(test_date, "2024-06-20", None) == False
+
+    # End date only
+    assert _is_within_date_range(test_date, None, "2024-06-20") == True
+    assert _is_within_date_range(test_date, None, "2024-06-15") == True
+    assert _is_within_date_range(test_date, None, "2024-06-10") == False
+
+    # Both start and end dates
+    assert _is_within_date_range(test_date, "2024-06-10", "2024-06-20") == True
+    assert _is_within_date_range(test_date, "2024-06-15", "2024-06-15") == True
+    assert _is_within_date_range(test_date, "2024-06-16", "2024-06-20") == False
+    assert _is_within_date_range(test_date, "2024-06-10", "2024-06-14") == False
+
+
+def test_add_humor_scores_with_date_filtering():
+    """Test adding humor scores with date filtering."""
+    test_data = [
+        {
+            "message_id": "123.456",
+            "user_id": "U123",
+            "message": "Message from June 1st",
+            "username": "Alice",
+            "datetime": "2024-06-01 12:00:00",
+            "quality_score_from_llm": None,
+        },
+        {
+            "message_id": "123.457",
+            "user_id": "U124",
+            "message": "Message from June 15th",
+            "username": "Bob",
+            "datetime": "2024-06-15 12:00:00",
+            "quality_score_from_llm": None,
+        },
+        {
+            "message_id": "123.458",
+            "user_id": "U125",
+            "message": "Message from June 30th",
+            "username": "Charlie",
+            "datetime": "2024-06-30 12:00:00",
+            "quality_score_from_llm": None,
+        },
+    ]
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        json.dump(test_data, f, indent=2)
+        temp_path = Path(f.name)
+
+    try:
+        # Test with date range that should only include middle message
+        with (
+            patch("data_pipeline.extract.get_humor_score_for_message", return_value=8) as mock_score,
+            patch("builtins.print"),
+        ):
+            add_humor_scores_to_existing_data(
+                temp_path,
+                humor_score_start_date="2024-06-10",
+                humor_score_end_date="2024-06-20",
+                max_workers=1,  # Use single worker for predictable testing
+            )
+
+        # Should only score one message (the middle one)
+        assert mock_score.call_count == 1
+
+        # Read the updated data
+        with open(temp_path) as f:
+            updated_data = json.load(f)
+
+        # Check that only the middle message got scored
+        assert updated_data[0]["quality_score_from_llm"] is None  # June 1st - outside range
+        assert updated_data[1]["quality_score_from_llm"] == 8  # June 15th - within range
+        assert updated_data[2]["quality_score_from_llm"] is None  # June 30th - outside range
+
+    finally:
+        temp_path.unlink()
+
+
+def test_add_humor_scores_threading():
+    """Test that multithreading works correctly."""
+    # Create several messages that need scoring
+    test_data = []
+    for i in range(5):
+        test_data.append(
+            {
+                "message_id": f"123.{i}",
+                "user_id": f"U{i}",
+                "message": f"Test message {i}",
+                "username": f"User{i}",
+                "datetime": "2024-06-15 12:00:00",
+                "quality_score_from_llm": None,
+            }
+        )
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        json.dump(test_data, f, indent=2)
+        temp_path = Path(f.name)
+
+    try:
+        # Mock scoring function with small delay to test threading
+        def mock_score_with_delay(message, username):
+            import time
+
+            time.sleep(0.1)  # Small delay to simulate LLM call
+            return 6
+
+        with (
+            patch("data_pipeline.extract.get_humor_score_for_message", side_effect=mock_score_with_delay) as mock_score,
+            patch("builtins.print"),
+        ):
+            # Use 2 workers for threading test
+            add_humor_scores_to_existing_data(temp_path, max_workers=2)
+
+        # All messages should be scored
+        assert mock_score.call_count == 5
+
+        # Read the updated data
+        with open(temp_path) as f:
+            updated_data = json.load(f)
+
+        # All messages should have scores
+        for record in updated_data:
+            assert record["quality_score_from_llm"] == 6
+
+    finally:
         temp_path.unlink()
