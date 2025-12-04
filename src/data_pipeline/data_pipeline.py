@@ -4,18 +4,29 @@ from datetime import datetime
 import polars as pl
 
 # Directory containing the JSON files
-data_dir = "random_phrase_ot_week"
-output_json = "results/cleaned_slack_data.json"
+data_dir = "../../random_phrase_ot_week"
+output_json = "../../results/cleaned_slack_data.json"
 
 all_records = []
 # Store all data from all files first to handle cross-file threads
 all_data = []
 
+# Count files processed
+files_processed = 0
+total_messages = 0
+
 for filename in os.listdir(data_dir):
     if filename.endswith(".json"):
+        files_processed += 1
+        print(f"Processing file {files_processed}: {filename}")
         with open(os.path.join(data_dir, filename), "r") as f:
             data = json.load(f)
+            print(f"  - Found {len(data)} messages in {filename}")
+            total_messages += len(data)
             all_data.extend(data)
+
+print(f"\nTotal files processed: {files_processed}")
+print(f"Total messages found: {total_messages}")
 
 # Build a lookup for replies across all files
 thread_lookup = {}
@@ -64,4 +75,6 @@ for entry in all_data:
 # Save to a single pretty-printed JSON file
 with open(output_json, "w") as f:
     json.dump(all_records, f, indent=2, ensure_ascii=False)
-print(f"Cleaned data written to {output_json}")
+print(f"\nCleaned data written to {output_json}")
+print(f"Total parent messages extracted: {len(all_records)}")
+print(f"Processing complete!")
