@@ -11,6 +11,9 @@ dependencies = [
     "polars",
 ]
 
+[project.scripts]
+extract-chats = "data_pipeline.cli:main"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/data_pipeline", "src/backend"]
 
